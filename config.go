@@ -1,9 +1,24 @@
 package repoman
 
+/* Copyright (C) 2020 Pablo Alvarez de Sotomayor Posadillo
+
+   This file is part of repoman.
+
+   repoman is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   repoman is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with repoman. If not, see <http://www.gnu.org/licenses/>. */
+
 import (
-	"errors"
 	"io/ioutil"
-	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -16,11 +31,8 @@ type Repo struct {
 type Group map[string]*Repo
 
 type Config struct {
-	Gopath      string           `yaml:"gopath"`
-	StatusDepth int              `yaml:"status_depth"`
-	Projects    map[string]*Repo `yaml:"projects"`
-	Groups      map[string]Group `yaml:"groups"`
-	pwd         string           `yaml:"-"` // current working, for reference
+	Projects map[string]*Repo `yaml:"projects"`
+	Groups   map[string]Group `yaml:"groups"`
 }
 
 var config Config
@@ -34,10 +46,6 @@ func parseConfig() error {
 }
 
 func parseConfigAt(file string) error {
-	config.Gopath = os.Getenv("GOPATH")
-	if config.Gopath == "" {
-		return errors.New("doesn't look like your GOPATH is configured")
-	}
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
@@ -59,6 +67,5 @@ func parseConfigAt(file string) error {
 		}
 	}
 
-	config.pwd, err = os.Getwd()
 	return err
 }

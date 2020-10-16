@@ -18,31 +18,37 @@ package repoman
    along with repoman. If not, see <http://www.gnu.org/licenses/>. */
 
 import (
+	"fmt"
+	"os"
+	"path"
 	"strings"
-
-	"github.com/magefile/mage/sh"
 )
 
-func gitBranches(project string) ([]string, error) {
-	branches, err := sh.Output("git", "-C", project, "for-each-ref",
-		`--format="%(refname:short) %(upstream:short)"`, "refs/heads")
-	if err != nil {
-		return nil, err
+func projectPath(group, name string) (string, error) {
+	gpath := groupNameToPath(group)
+	p := path.Join(gpath, name)
+	if _, err := os.Stat(p); err != nil {
+		return "", err
 	}
 
-	return strings.Split(strings.ReplaceAll(branches, `"`, ""), "\n"), nil
+	return p, nil
 }
 
-func gitRemoteBranches(project string) (map[string]bool, error) {
-	branches, err := sh.Output("git", "-C", project, "branch", "-r")
-	if err != nil {
-		return nil, err
+func mkGroupDir(group string) error {
+	return mkDir(groupNameToPath(group))
+}
+
+func mkDir(path string) error {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return err
 	}
 
-	remoteBranches := make(map[string]bool)
-	for _, branch := range strings.Split(strings.ReplaceAll(branches, `"`, ""), "\n") {
-		remoteBranches[strings.TrimSpace(branch)] = true
-	}
+	fmt.Printf("Creating group: %s\n", path)
 
-	return remoteBranches, nil
+	return os.MkdirAll(path, os.ModePerm)
+}
+
+func groupNameToPath(group string) string {
+	p := strings.Split(group, ".")
+	return path.Join(p...)
 }

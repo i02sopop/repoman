@@ -1,3 +1,4 @@
+// Package repoman add some commands to magefile to manage git repositories.
 package repoman
 
 /* Copyright (C) 2020 Pablo Alvarez de Sotomayor Posadillo
@@ -16,33 +17,3 @@ package repoman
 
    You should have received a copy of the GNU General Public License
    along with repoman. If not, see <http://www.gnu.org/licenses/>. */
-
-import (
-	"strings"
-
-	"github.com/magefile/mage/sh"
-)
-
-func gitBranches(project string) ([]string, error) {
-	branches, err := sh.Output("git", "-C", project, "for-each-ref",
-		`--format="%(refname:short) %(upstream:short)"`, "refs/heads")
-	if err != nil {
-		return nil, err
-	}
-
-	return strings.Split(strings.ReplaceAll(branches, `"`, ""), "\n"), nil
-}
-
-func gitRemoteBranches(project string) (map[string]bool, error) {
-	branches, err := sh.Output("git", "-C", project, "branch", "-r")
-	if err != nil {
-		return nil, err
-	}
-
-	remoteBranches := make(map[string]bool)
-	for _, branch := range strings.Split(strings.ReplaceAll(branches, `"`, ""), "\n") {
-		remoteBranches[strings.TrimSpace(branch)] = true
-	}
-
-	return remoteBranches, nil
-}

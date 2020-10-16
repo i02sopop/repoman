@@ -18,31 +18,47 @@ package repoman
    along with repoman. If not, see <http://www.gnu.org/licenses/>. */
 
 import (
-	"strings"
+	"fmt"
+	"os"
+	"path"
 
 	"github.com/magefile/mage/sh"
 )
 
-func gitBranches(project string) ([]string, error) {
-	branches, err := sh.Output("git", "-C", project, "for-each-ref",
-		`--format="%(refname:short) %(upstream:short)"`, "refs/heads")
-	if err != nil {
-		return nil, err
+func cloneGroupRepos() error {
+	for group, repos := range config.Groups {
+		if err := mkGroupDir(group); err != nil {
+			return err
+		}
+
+		for _, repo := range repos {
+			if err := cloneRepo(group, repo); err != nil {
+				return err
+			}
+		}
 	}
 
-	return strings.Split(strings.ReplaceAll(branches, `"`, ""), "\n"), nil
+	return nil
 }
 
-func gitRemoteBranches(project string) (map[string]bool, error) {
-	branches, err := sh.Output("git", "-C", project, "branch", "-r")
-	if err != nil {
-		return nil, err
+func cloneProjectRepos() error {
+	for _, repo := range config.Projects {
+		if err := cloneRepo(".", repo); err != nil {
+			return err
+		}
 	}
 
-	remoteBranches := make(map[string]bool)
-	for _, branch := range strings.Split(strings.ReplaceAll(branches, `"`, ""), "\n") {
-		remoteBranches[strings.TrimSpace(branch)] = true
+	return nil
+}
+
+func cloneRepo(group string, r *Repo) error {
+	gpath := groupNameToPath(group)
+	p := path.Join(gpath, r.Name)
+	if _, err := os.Stat(p); os.IsNotExist(err) {
+		fmt.Printf("Cloning Repo %s into %s\n", r.Repo, p)
+
+		return sh.Run("git", "-C", gpath, "clone", r.Repo, r.Name)
 	}
 
-	return remoteBranches, nil
+	return nil
 }
