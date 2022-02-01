@@ -27,6 +27,8 @@ import (
 // ChangeAuthor change the repositories author configurations.
 func ChangeAuthor() error {
 	mg.Deps(parseConfig)
+	mg.Deps(changeAuthorGroupRepos)
+	mg.Deps(changeAuthorProjectRepos)
 
 	return nil
 }
