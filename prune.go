@@ -1,6 +1,6 @@
 package repoman
 
-/* Copyright (C) 2020 Pablo Alvarez de Sotomayor Posadillo
+/* Copyright (C) 2020-2022 Pablo Alvarez de Sotomayor Posadillo
 
    This file is part of repoman.
 

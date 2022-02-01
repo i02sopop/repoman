@@ -1,6 +1,6 @@
 package repoman
 
-/* Copyright (C) 2020 Pablo Alvarez de Sotomayor Posadillo
+/* Copyright (C) 2020-2022 Pablo Alvarez de Sotomayor Posadillo
 
    This file is part of repoman.
 
@@ -23,6 +23,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type Author struct {
+	Email string `yaml:"email"`
+	Name  string `yaml:"name"`
+}
+
 type Repo struct {
 	Name string `yaml:"name"`
 	Repo string `yaml:"repository"`
@@ -31,6 +36,7 @@ type Repo struct {
 type Group map[string]*Repo
 
 type Config struct {
+	Author   Author           `yaml:"author"`
 	Projects map[string]*Repo `yaml:"projects"`
 	Groups   map[string]Group `yaml:"groups"`
 }

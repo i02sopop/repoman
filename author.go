@@ -19,20 +19,22 @@ package repoman
 
 import (
 	"fmt"
-	"os"
-	"path"
 
+	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
-func cloneGroupRepos() error {
-	for group, repos := range config.Groups {
-		if err := mkGroupDir(group); err != nil {
-			return err
-		}
+// ChangeAuthor change the repositories author configurations.
+func ChangeAuthor() error {
+	mg.Deps(parseConfig)
 
+	return nil
+}
+
+func changeAuthorGroupRepos() error {
+	for group, repos := range config.Groups {
 		for _, repo := range repos {
-			if err := cloneRepo(group, repo); err != nil {
+			if err := changeAuthor(group, repo); err != nil {
 				return err
 			}
 		}
@@ -41,9 +43,9 @@ func cloneGroupRepos() error {
 	return nil
 }
 
-func cloneProjectRepos() error {
+func changeAuthorProjectRepos() error {
 	for _, repo := range config.Projects {
-		if err := cloneRepo(".", repo); err != nil {
+		if err := changeAuthor(".", repo); err != nil {
 			return err
 		}
 	}
@@ -51,14 +53,16 @@ func cloneProjectRepos() error {
 	return nil
 }
 
-func cloneRepo(group string, r *Repo) error {
-	gpath := groupNameToPath(group)
-	p := path.Join(gpath, r.Name)
-	if _, err := os.Stat(p); os.IsNotExist(err) {
-		fmt.Printf("Cloning Repo %s into %s\n", r.Repo, p)
-
-		return sh.Run("git", "-C", gpath, "clone", r.Repo, r.Name)
+func changeAuthor(group string, r *Repo) error {
+	p, err := projectPath(group, r.Name)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	fmt.Printf("Changing author for Repo %s\n", p)
+	if err := sh.Run("git", "-C", p, "config", "user.email", config.Author.Email); err != nil {
+		return err
+	}
+
+	return sh.Run("git", "-C", p, "config", "user.name", config.Author.Name)
 }
